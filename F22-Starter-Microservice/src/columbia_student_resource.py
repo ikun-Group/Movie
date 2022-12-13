@@ -3,7 +3,7 @@ import pymysql
 import os
 
 
-class ColumbiaStudentResource:
+class MovieResource:
 
     def __int__(self):
         pass
@@ -27,8 +27,8 @@ class ColumbiaStudentResource:
     @staticmethod
     def get_by_key(key):
 
-        sql = "SELECT * FROM f22_databases.columbia_students where guid=%s";
-        conn = ColumbiaStudentResource._get_connection()
+        sql = "SELECT * FROM movies_databases.movie_table where guid=%s";
+        conn = MovieResource._get_connection()
         cur = conn.cursor()
         res = cur.execute(sql, args=key)
         result = cur.fetchone()
