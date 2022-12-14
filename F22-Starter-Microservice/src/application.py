@@ -27,12 +27,22 @@ def get_health():
 
     return result
 
+@app.route("/api/movies", methods=["GET"])
+def get_all_movies():
+    result = MovieResource.get_all()
+    if result:
+        rsp = Response(json.dumps(result), status=200, content_type="application.json")
+    else:
+        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+
+    return rsp
+
 
 @app.route("/api/movies/<guid>", methods=["GET"])
 def get_student_by_uni(guid):
-
+    print(guid)
     result = MovieResource.get_by_key(guid)
-
+    print(result)
     if result:
         rsp = Response(json.dumps(result), status=200, content_type="application.json")
     else:
@@ -41,5 +51,5 @@ def get_student_by_uni(guid):
     return rsp
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5011)
+    app.run(host="0.0.0.0", port=5001)
 
