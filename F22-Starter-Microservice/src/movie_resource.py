@@ -56,14 +56,12 @@ class MovieResource:
         sql = " INSERT INTO movies_databases.movie_table(name, category, year, rating, guid) VALUES(%s,%s,%s,%s,%s) "
         conn = MovieResource._get_connection()
         cur = conn.cursor()
-        res = cur.execute(sql, name, cagtegory, year, rating, guid)
+        res = cur.execute(sql, (name, cagtegory, year, rating, guid))
         result = cur.fetchone()
         return result
 
     @staticmethod
     def update_movie(column, new_val):
-
-
         sql = "UPDATE movies_databases.movie_table SET %s=%s WHERE %s=%s"
         conn = MovieResource._get_connection()
         cur = conn.cursor()
@@ -78,5 +76,7 @@ class MovieResource:
         res = cur.execute(sql, column, condition)
         result = cur.fetchone()
         return result
+
+
 
 

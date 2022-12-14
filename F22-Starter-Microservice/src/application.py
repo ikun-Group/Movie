@@ -1,4 +1,4 @@
-from flask import Flask, Response, request
+from flask import Flask, Response, request, jsonify, render_template, redirect, url_for, flash, session
 from datetime import datetime
 import json
 from movie_resource import MovieResource
@@ -8,12 +8,12 @@ from flask_cors import CORS
 app = Flask(__name__,
             static_url_path='/',
             static_folder='static/class-ui/',
-            template_folder='web/templates')
+            template_folder='templates')
 
 CORS(app)
 
 
-@app.get("/api/health")
+@app.route("/api/health")
 def get_health():
     t = str(datetime.now())
     msg = {
@@ -27,6 +27,32 @@ def get_health():
 
     return result
 
+
+@app.route("/api/movie/addNewMovie")
+def add_movie():
+    return render_template('create_movie.html')
+
+@app.route("/api/movie/create", methods=["GET", "POST"])
+def create():
+    if request.method == 'POST':
+        name = request.form['movie_name']
+        category = request.form['category']
+        year = request.form['year']
+        rating = request.form['rating']
+        if name is None or category is None or year is None or rating is None:
+            flash("check your input")
+            return redirect(url_for('add_movie'))
+
+        try:
+            result = MovieResource.add_movie(name, category, year, rating)
+            return '', 200
+        except:
+            return '', 400
+    return
+
+
+
+
 @app.route("/api/movies", methods=["GET"])
 def get_all_movies():
     result = MovieResource.get_all()
@@ -39,7 +65,7 @@ def get_all_movies():
 
 
 @app.route("/api/movies/<guid>", methods=["GET"])
-def get_student_by_uni(guid):
+def get_movie_by_id(guid):
     print(guid)
     result = MovieResource.get_by_key(guid)
     print(result)
