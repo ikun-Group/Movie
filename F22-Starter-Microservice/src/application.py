@@ -27,10 +27,10 @@ def get_health():
 
     return result
 
-
-@app.route("api/")
-def index():
-    return render_template("index.html")
+#
+# @app.route("api/")
+# def index():
+#     return render_template("index.html")
 
 
 @app.route("/api/movie/addNewMovie")
