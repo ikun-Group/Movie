@@ -28,6 +28,11 @@ def get_health():
     return result
 
 
+@app.route("api/")
+def index():
+    return render_template("index.html")
+
+
 @app.route("/api/movie/addNewMovie")
 def add_movie():
     return render_template('create_movie.html')
@@ -42,7 +47,6 @@ def create():
         if name is None or category is None or year is None or rating is None:
             flash("check your input")
             return redirect(url_for('add_movie'))
-
         try:
             result = MovieResource.add_movie(name, category, year, rating)
             return '', 200
