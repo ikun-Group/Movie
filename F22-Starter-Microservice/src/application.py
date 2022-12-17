@@ -27,6 +27,7 @@ def get_health():
 
     return result
 
+<<<<<<< HEAD
 @app.route("/api/movies", methods=["GET"])
 def get_all_movies():
     result = MovieResource.get_all()
@@ -35,6 +36,12 @@ def get_all_movies():
     else:
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
+=======
+#
+# @app.route("api/")
+# def index():
+#     return render_template("index.html")
+>>>>>>> main
 
 
 @app.route("/api/movie/addNewMovie")
