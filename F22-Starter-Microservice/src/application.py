@@ -27,10 +27,20 @@ def get_health():
 
     return result
 
+@app.route("/api/movies", methods=["GET"])
+def get_all_movies():
+    result = MovieResource.get_all()
+    if result:
+        rsp = Response(json.dumps(result), status=200, content_type="application.json")
+    else:
+        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+    return rsp
+
 
 @app.route("/api/movie/addNewMovie")
 def add_movie():
     return render_template('create_movie.html')
+
 
 @app.route("/api/movie/create", methods=["GET", "POST"])
 def create():
@@ -42,7 +52,6 @@ def create():
         if name is None or category is None or year is None or rating is None:
             flash("check your input")
             return redirect(url_for('add_movie'))
-
         try:
             result = MovieResource.add_movie(name, category, year, rating)
             return '', 200
@@ -51,31 +60,50 @@ def create():
     return
 
 
+@app.route("/api/movies/<guid>", methods=["GET", "PUT", "DELETE"])
+def movie_by_id(guid):
+    if request.method == "GET":
+        result = MovieResource.get_by_key(guid)
+        if result:
+            rsp = Response(json.dumps(result), status=200, content_type="application.json")
+        else:
+            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+    elif request.method == "PUT":
+        name = request.form['movie_name']
+        category = request.form['category']
+        year = request.form['year']
+        rating = request.form['rating']
+        if name is None or category is None or year is None or rating is None:
+            flash("check your input")
+            return redirect(url_for('movie_by_id'))
+        try:
+            result = MovieResource.update_movie(guid, name, category, year, rating)
+            if result:
+                rsp = Response(json.dumps(result), status=200, content_type="application.json")
+            else:
+                rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+        except:
+            return '', 404
+    elif request.method == "DELETE":
+        result = MovieResource.delete_movie(guid)
+        if result:
+            rsp = Response(json.dumps(result), status=200, content_type="application.json")
+        else:
+            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+    else:
+        rsp = Response("NOT IMPLEMENTED", status=501, content_type="text/plain")
+    return rsp
 
 
-@app.route("/api/movies", methods=["GET"])
-def get_all_movies():
-    result = MovieResource.get_all()
+@app.route("/api/movies/<guid>/<value>", methods=["GET"])
+def get_value_by_id(guid, value):
+    result = MovieResource.get_value(guid, value)
     if result:
         rsp = Response(json.dumps(result), status=200, content_type="application.json")
     else:
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-
     return rsp
 
-
-@app.route("/api/movies/<guid>", methods=["GET"])
-def get_movie_by_id(guid):
-    print(guid)
-    result = MovieResource.get_by_key(guid)
-    print(result)
-    if result:
-        rsp = Response(json.dumps(result), status=200, content_type="application.json")
-    else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-
-    return rsp
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001)
-
