@@ -2,6 +2,7 @@ import pymysql
 import os
 import uuid
 
+
 class MovieResource:
 
     def __int__(self):
@@ -9,7 +10,6 @@ class MovieResource:
 
     @staticmethod
     def _get_connection():
-
         # usr = os.environ.get("DBUSER")
         # pw = os.environ.get("DBPW")
         # h = os.environ.get("DBHOST")
@@ -27,7 +27,6 @@ class MovieResource:
             autocommit=True)
         return conn
 
-
     @staticmethod
     def get_all():
         sql = "SELECT * FROM movies_databases.movie_table"
@@ -37,32 +36,33 @@ class MovieResource:
         result = cur.fetchall()
         return result
 
-
     @staticmethod
-    def get_by_key(key):
-        sql = "SELECT * FROM movies_databases.movie_table where guid=%s"
+    def get_by_template(field_list, template, limit=None, offset=None):
+        sql = "select " \
+              + ",".join(field_list) \
+              + " from movies_databases.movie_table where " \
+              + " and ".join(["%s = '%s'" % (key, val) if not type(val) == int
+                              else "%s = %s" % (key, val)
+                              for (key, val) in template.items()])
+        if not limit and not offset:
+            pass
+        else:
+            sql += " limit " + str(limit) + " offset " + str(offset)
+
         conn = MovieResource._get_connection()
         cur = conn.cursor()
-        res = cur.execute(sql, args=key)
-        result = cur.fetchone()
+        res = cur.execute(sql)
+        result = cur.fetchall()
+        # print(cur.mogrify(sql))
         return result
 
-    def get_value(key,value):
-        sql = "SELECT * FROM movies_databases.movie_table where guid=%s"
-        conn = MovieResource._get_connection()
-        cur = conn.cursor()
-        res = cur.execute(sql, key)
-        result = cur.fetchone()
-        return result[value]
-
-
     @staticmethod
-    def add_movie(name, cagtegory, year, rating):
+    def create_movie(name, category, year, rating):
         guid = str(uuid.uuid4())
         sql = "INSERT INTO movies_databases.movie_table(name, category, year, rating, guid) VALUES(%s,%s,%s,%s,%s) "
         conn = MovieResource._get_connection()
         cur = conn.cursor()
-        res = cur.execute(sql, (name, cagtegory, year, rating, guid))
+        res = cur.execute(sql, (name, category, year, rating, guid))
         result = cur.fetchone()
         return result
 
@@ -83,7 +83,3 @@ class MovieResource:
         res = cur.execute(sql, guid)
         result = cur.fetchone()
         return result
-
-
-
-

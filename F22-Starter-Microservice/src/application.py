@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 from movie_resource import MovieResource
 from flask_cors import CORS
+import copy
 
 # Create the Flask application object.
 app = Flask(__name__,
@@ -27,50 +28,59 @@ def get_health():
 
     return result
 
-<<<<<<< HEAD
-@app.route("/api/movies", methods=["GET"])
-def get_all_movies():
-    result = MovieResource.get_all()
-    if result:
-        rsp = Response(json.dumps(result), status=200, content_type="application.json")
-    else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-    return rsp
-=======
-#
+
 # @app.route("api/")
 # def index():
 #     return render_template("index.html")
->>>>>>> main
 
 
-@app.route("/api/movie/addNewMovie")
-def add_movie():
-    return render_template('create_movie.html')
+# @app.route("/api/movie/addNewMovie")
+# def add_movie():
+#     return render_template('create_movie.html')
 
 
-@app.route("/api/movie/create", methods=["GET", "POST"])
-def create():
-    if request.method == 'POST':
+@app.route("/api/movies", methods=["GET", "POST"])
+def movies():
+    if request.method == "GET":
+        result = MovieResource.get_all()
+        if result:
+            rsp = Response(json.dumps(result), status=200, content_type="application.json")
+        else:
+            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+        return rsp
+    else:
         name = request.form['movie_name']
         category = request.form['category']
         year = request.form['year']
         rating = request.form['rating']
         if name is None or category is None or year is None or rating is None:
-            flash("check your input")
-            return redirect(url_for('add_movie'))
-        try:
-            result = MovieResource.add_movie(name, category, year, rating)
-            return '', 200
-        except:
-            return '', 400
-    return
+            res = 'check your input'
+            status_code = 400
+        else:
+            try:
+                ret = MovieResource.create_movie(name, category, year, rating)
+                if ret:
+                    res = 'Movie created!'
+                    status_code = 201
+                else:
+                    res = 'Failed to create movie'
+                    status_code = 422
+            except Exception as e:
+                res = 'Error: {}'.format(str(e))
+                status_code = 422
+        return Response(f"{status_code} - {res}", status=status_code, mimetype="application/json")
 
 
 @app.route("/api/movies/<guid>", methods=["GET", "PUT", "DELETE"])
 def movie_by_id(guid):
     if request.method == "GET":
-        result = MovieResource.get_by_key(guid)
+        tmp = copy.copy(request.args)
+        limit = tmp.get("limit")
+        offset = tmp.get("offset")
+        if limit and offset:
+            del tmp['limit']
+            del tmp['offset']
+        result = MovieResource.get_by_template('*', {'guid': guid}, limit, offset)
         if result:
             rsp = Response(json.dumps(result), status=200, content_type="application.json")
         else:
@@ -90,7 +100,7 @@ def movie_by_id(guid):
             else:
                 rsp = Response("NOT FOUND", status=404, content_type="text/plain")
         except:
-            return '', 404
+            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     elif request.method == "DELETE":
         result = MovieResource.delete_movie(guid)
         if result:
@@ -104,7 +114,7 @@ def movie_by_id(guid):
 
 @app.route("/api/movies/<guid>/<value>", methods=["GET"])
 def get_value_by_id(guid, value):
-    result = MovieResource.get_value(guid, value)
+    result = MovieResource.get_by_template([value], {'guid': guid})
     if result:
         rsp = Response(json.dumps(result), status=200, content_type="application.json")
     else:

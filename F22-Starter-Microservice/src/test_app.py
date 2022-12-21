@@ -4,10 +4,10 @@ import json
 
 def t1():
 
-    health_url = "http://127.0.0.1:5011/api/health"
+    movies_url = "http://127.0.0.1:5001/api/movies"
 
     try:
-        h_message = requests.get(health_url)
+        h_message = requests.get(movies_url)
         if h_message.status_code == 200:
             print("\n\n Congratulations. Your end-to-end test worked. \n\n")
             print("Application health message = \n")
