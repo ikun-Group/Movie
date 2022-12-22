@@ -64,6 +64,7 @@ class MovieResource:
         cur = conn.cursor()
         res = cur.execute(sql, (name, category, year, rating, guid))
         result = cur.fetchone()
+        print('This is result',str(result))
         return result
 
     @staticmethod
