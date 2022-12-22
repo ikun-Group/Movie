@@ -59,6 +59,7 @@ def movies():
         else:
             try:
                 ret = MovieResource.create_movie(name, category, year, rating)
+                print('this is ret',ret)
                 if ret:
                     res = 'Movie created!'
                     status_code = 201
