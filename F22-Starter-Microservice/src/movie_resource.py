@@ -1,5 +1,4 @@
 import pymysql
-import os
 import uuid
 
 
@@ -28,8 +27,12 @@ class MovieResource:
         return conn
 
     @staticmethod
-    def get_all():
+    def get_all(limit=None, offset=None):
         sql = "SELECT * FROM movies_databases.movie_table"
+        if limit:
+            sql += " limit " + str(limit)
+        if offset:
+            sql += " offset " + str(offset)
         conn = MovieResource._get_connection()
         cur = conn.cursor()
         res = cur.execute(sql)
@@ -44,10 +47,10 @@ class MovieResource:
               + " and ".join(["%s = '%s'" % (key, val) if not type(val) == int
                               else "%s = %s" % (key, val)
                               for (key, val) in template.items()])
-        if not limit and not offset:
-            pass
-        else:
-            sql += " limit " + str(limit) + " offset " + str(offset)
+        if limit:
+            sql += " limit " + str(limit)
+        if offset:
+            sql += " offset " + str(offset)
 
         conn = MovieResource._get_connection()
         cur = conn.cursor()
@@ -59,13 +62,12 @@ class MovieResource:
     @staticmethod
     def create_movie(name, category, year, rating):
         guid = str(uuid.uuid4())
-        sql = "INSERT INTO movies_databases.movie_table(name, category, year, rating, guid) VALUES(%s,%s,%s,%s,%s) "
+        sql = "INSERT INTO movies_databases.movie_table(name, category, year, rating, guid) VALUES(%s,%s,%s,%s,%s)"
         conn = MovieResource._get_connection()
         cur = conn.cursor()
         res = cur.execute(sql, (name, category, year, rating, guid))
-        result = cur.fetchone()
-        print('This is result',str(result))
-        return result
+        return res
+
 
     @staticmethod
     def update_movie(guid, name, category, year, rating):
@@ -73,14 +75,12 @@ class MovieResource:
         conn = MovieResource._get_connection()
         cur = conn.cursor()
         res = cur.execute(sql, (name, category, year, rating, guid))
-        result = cur.fetchone()
-        return result
+        return res
 
     @staticmethod
     def delete_movie(guid):
-        sql = "DELETE FROM movies_databases.movie_table WHERE guid=%s "
+        sql = "DELETE FROM movies_databases.movie_table WHERE guid=%s"
         conn = MovieResource._get_connection()
         cur = conn.cursor()
         res = cur.execute(sql, guid)
-        result = cur.fetchone()
-        return result
+        return res

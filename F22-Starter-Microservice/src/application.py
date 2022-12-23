@@ -42,34 +42,31 @@ def get_health():
 @app.route("/api/movies", methods=["GET", "POST"])
 def movies():
     if request.method == "GET":
-        result = MovieResource.get_all()
+        tmp = copy.copy(request.args)
+        limit = tmp.get("limit")
+        offset = tmp.get("offset")
+        result = MovieResource.get_all(limit, offset)
         if result:
             rsp = Response(json.dumps(result), status=200, content_type="application.json")
         else:
             rsp = Response("NOT FOUND", status=404, content_type="text/plain")
         return rsp
-    else:
-        name = request.form['movie_name']
-        category = request.form['category']
-        year = request.form['year']
-        rating = request.form['rating']
-        if name is None or category is None or year is None or rating is None:
-            res = 'check your input'
-            status_code = 400
-        else:
-            try:
-                ret = MovieResource.create_movie(name, category, year, rating)
-                print('this is ret',ret)
-                if ret:
-                    res = 'Movie created!'
-                    status_code = 201
-                else:
-                    res = 'Failed to create movie'
-                    status_code = 422
-            except Exception as e:
-                res = 'Error: {}'.format(str(e))
+    elif request.method == "POST":
+        movie_profile = request.get_json()
+        try:
+            ret = MovieResource.create_movie(**movie_profile)
+            if ret:
+                res = 'Movie created!'
+                status_code = 201
+            else:
+                res = 'Failed to create movie'
                 status_code = 422
+        except Exception as e:
+            res = 'Error: {}'.format(str(e))
+            status_code = 422
         return Response(f"{status_code} - {res}", status=status_code, mimetype="application/json")
+    else:
+        return Response("Not implemented", status=501, content_type="text/plain")
 
 
 @app.route("/api/movies/<guid>", methods=["GET", "PUT", "DELETE"])
@@ -78,36 +75,33 @@ def movie_by_id(guid):
         tmp = copy.copy(request.args)
         limit = tmp.get("limit")
         offset = tmp.get("offset")
-        if limit and offset:
-            del tmp['limit']
-            del tmp['offset']
         result = MovieResource.get_by_template('*', {'guid': guid}, limit, offset)
         if result:
             rsp = Response(json.dumps(result), status=200, content_type="application.json")
         else:
             rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     elif request.method == "PUT":
-        name = request.form['movie_name']
-        category = request.form['category']
-        year = request.form['year']
-        rating = request.form['rating']
-        if name is None or category is None or year is None or rating is None:
-            flash("check your input")
-            return redirect(url_for('movie_by_id'))
-        try:
-            result = MovieResource.update_movie(guid, name, category, year, rating)
-            if result:
-                rsp = Response(json.dumps(result), status=200, content_type="application.json")
-            else:
-                rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-        except:
-            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-    elif request.method == "DELETE":
-        result = MovieResource.delete_movie(guid)
-        if result:
-            rsp = Response(json.dumps(result), status=200, content_type="application.json")
+        movie_profile = request.get_json()
+        if len(movie_profile) != 4:
+            rsp = Response("input length not right", status=400, content_type="text/plain")
         else:
-            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+            try:
+                result = MovieResource.update_movie(guid, **movie_profile)
+                if result:
+                    rsp = Response('Update successful', status=200, content_type="application.json")
+                else:
+                    rsp = Response("Update failed", status=404, content_type="text/plain")
+            except Exception as e:
+                rsp = Response('Error: {}'.format(str(e)), status=404, content_type="text/plain")
+    elif request.method == "DELETE":
+        try:
+            result = MovieResource.delete_movie(guid)
+            if result:
+                rsp = Response('Delete successful', status=200, content_type="application.json")
+            else:
+                rsp = Response("Delete failed", status=404, content_type="text/plain")
+        except Exception as e:
+            rsp = Response('Error: {}'.format(str(e)), status=404, content_type="text/plain")
     else:
         rsp = Response("NOT IMPLEMENTED", status=501, content_type="text/plain")
     return rsp
