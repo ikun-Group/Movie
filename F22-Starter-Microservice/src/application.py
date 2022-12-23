@@ -4,6 +4,7 @@ import json
 from movie_resource import MovieResource
 from flask_cors import CORS
 import copy
+from rest_utils import RESTContext
 
 # Create the Flask application object.
 app = Flask(__name__,
@@ -41,11 +42,10 @@ def get_health():
 
 @app.route("/api/movies", methods=["GET", "POST"])
 def movies():
-    if request.method == "GET":
-        tmp = copy.copy(request.args)
-        limit = tmp.get("limit")
-        offset = tmp.get("offset")
-        result = MovieResource.get_all(limit, offset)
+    request_inputs = RESTContext(request, movies)
+    if request_inputs.method == "GET":
+        result = MovieResource.get_all(limit=request_inputs.limit, offset=request_inputs.offset)
+        result = request_inputs.add_pagination(result)
         if result:
             rsp = Response(json.dumps(result), status=200, content_type="application.json")
         else:
@@ -72,10 +72,7 @@ def movies():
 @app.route("/api/movies/<guid>", methods=["GET", "PUT", "DELETE"])
 def movie_by_id(guid):
     if request.method == "GET":
-        tmp = copy.copy(request.args)
-        limit = tmp.get("limit")
-        offset = tmp.get("offset")
-        result = MovieResource.get_by_template('*', {'guid': guid}, limit, offset)
+        result = MovieResource.get_by_template('*', {'guid': guid}, limit=None, offset=None)
         if result:
             rsp = Response(json.dumps(result), status=200, content_type="application.json")
         else:
